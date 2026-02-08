@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stok Pintar Pro - Layout Sempurna</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --danger: #ef4444; 
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+
+        /* Header */
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Tabs Kategori */
+        .tabs { display: flex; overflow-x: auto; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 60px; z-index: 90; }
+        .tab { padding: 12px 20px; cursor: pointer; font-weight: 600; color: var(--text-light); white-space: nowrap; border-bottom: 3px solid transparent; font-size: 0.9rem; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .container { padding: 12px; max-width: 600px; margin: 0 auto; }
+
+        /* FORM INPUT (Screen 1) */
+        .card-form { background: var(--card); padding: 18px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; }
+        .btn-submit { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+
+        /* DAFTAR PRODUK (Screen 2 - Layout Baru) */
+        .search-box { background: var(--card); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; border: 1px solid var(--border); margin-bottom: 12px; }
+        .search-box input { border: none; outline: none; width: 100%; margin-left: 10px; font-size: 0.95rem; }
+
+        .product-item { background: var(--card); display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+        
+        /* Nama & Harga Berdampingan */
+        .product-info { flex: 1; min-width: 0; }
+        .name-price-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+        .product-name { font-weight: 700; font-size: 1rem; margin: 0; text-transform: uppercase; }
+        .price-sell-red { color: var(--danger); font-weight: 800; font-size: 1rem; cursor: pointer; white-space: nowrap; }
+        
+        .product-meta { color: var(--text-light); font-size: 0.75rem; margin-top: 2px; }
+        .price-buy-small { color: #94a3b8; font-size: 0.75rem; font-style: italic; }
+
+        /* Kolom Stok Lebih Kecil */
+        .right-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .stock-control { 
+            display: flex; align-items: center; gap: 8px; background: #f1f5f9; 
+            padding: 4px 8px; border-radius: 15px; border: 1px solid var(--border);
+        }
+        .btn-qty { border: none; background: none; font-size: 1.2rem; color: var(--primary); cursor: pointer; font-weight: bold; padding: 0 5px; }
+        .stock-num { font-weight: 800; min-width: 20px; text-align: center; font-size: 0.95rem; color: #0f172a; }
+        .btn-delete { color: #cbd5e1; border: none; background: none; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Backup/Restore */
+        .backup-section { margin-top: 20px; padding: 15px; background: #f1f5f9; border-radius: 10px; border: 1px dashed #cbd5e1; text-align: center; }
+        .btn-utility { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.75rem; margin: 3px; }
+
+        /* Modal & Nav */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal.show { display: flex; }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 100%; max-width: 350px; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid var(--border); z-index: 100; height: 65px; }
+        .nav-item { flex: 1; text-align: center; padding: 10px; color: var(--text-light); cursor: pointer; font-size: 0.75rem; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-item i { display: block; font-size: 1.2rem; margin-bottom: 2px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0; font-size: 1.2rem;">STOK PINTAR PRO</h2>
+    </div>
+
+    <div id="tabs-container" class="tabs hidden"></div>
+
+    <div id="screen-add" class="container">
+        <div class="card-form">
+            <h3 style="margin-top:0; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Tambah Produk Baru</h3>
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="f-kategori">
+                    <option value="NARITA">NARITA</option>
+                    <option value="VR">VR</option>
+                    <option value="KUDUS">KUDUS</option>
+                    <option value="LAIN">LAIN</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Kode Barang</label>
+                <input type="text" id="f-kode" placeholder="Misal: NR-01">
+            </div>
+            <div class="form-group">
+                <label>Nama Produk</label>
+                <input type="text" id="f-nama" placeholder="Masukkan nama barang...">
+            </div>
+            <div class="form-group">
+                <label>Harga Dasar (Modal)</label>
+                <input type="number" id="f-harga-beli" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>Harga Jual</label>
+                <input type="number" id="f-harga-jual" placeholder="0">
+            </div>
+            <button class="btn-submit" onclick="simpanProduk()">SIMPAN PRODUK</button>
+        </div>
+
+        <div class="backup-section">
+            <p style="margin-top:0; font-weight:bold; font-size:0.8rem">Sistem Backup</p>
+            <button class="btn-utility" onclick="exportData()"><i class="fas fa-file-download"></i> Simpan Backup</button>
+            <button class="btn-utility" onclick="document.getElementById('importFile').click()"><i class="fas fa-file-upload"></i> Restore</button>
+            <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+        </div>
+    </div>
+
+    <div id="screen-list" class="hidden">
+        <div class="container">
+            <div class="search-box">
+                <i class="fas fa-search" style="color:#94a3b8"></i>
+                <input type="text" id="q-search" placeholder="Cari nama atau kode..." oninput="renderProduk()">
+            </div>
+            <div id="list-render"></div>
+        </div>
+    </div>
+
+    <div id="modal-edit" class="modal">
+        <div class="modal-content">
+            <h3 id="edit-title" style="margin-top:0">Edit Produk</h3>
+            <div class="form-group">
+                <label>Kode Barang</label>
+                <input type="text" id="m-kode">
+            </div>
+            <div class="form-group">
+                <label>Harga Dasar</label>
+                <input type="number" id="m-beli">
+            </div>
+            <div class="form-group">
+                <label>Harga Jual Baru</label>
+                <input type="number" id="m-jual">
+            </div>
+            <div style="display:flex; gap:10px; justify-content: flex-end;">
+                <button onclick="tutupModal()" style="border:none; background:none; cursor:pointer; font-weight:600; color:var(--text-light)">Batal</button>
+                <button class="btn-submit" onclick="updateHargaAction()" style="width:auto; padding:8px 15px;">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="navKe('add')" id="nav-add"><i class="fas fa-plus-circle"></i>Tambah</div>
+        <div class="nav-item" onclick="navKe('list')" id="nav-list"><i class="fas fa-boxes"></i>Stok Barang</div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('stok_db_v5')) || [];
+        let curCat = "NARITA";
+        let editId = null;
+        const cats = ["NARITA", "VR", "KUDUS", "LAIN"];
+
+        function navKe(page) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(page === 'add') {
+                document.getElementById('screen-add').classList.remove('hidden');
+                document.getElementById('screen-list').classList.add('hidden');
+                document.getElementById('tabs-container').classList.add('hidden');
+                document.getElementById('nav-add').classList.add('active');
+            } else {
+                document.getElementById('screen-add').classList.add('hidden');
+                document.getElementById('screen-list').classList.remove('hidden');
+                document.getElementById('tabs-container').classList.remove('hidden');
+                document.getElementById('nav-list').classList.add('active');
+                renderTabs();
+                renderProduk();
+            }
+        }
+
+        function simpanProduk() {
+            const nama = document.getElementById('f-nama').value;
+            const kode = document.getElementById('f-kode').value || "-";
+            const beli = document.getElementById('f-harga-beli').value;
+            const jual = document.getElementById('f-harga-jual').value;
+            const kat = document.getElementById('f-kategori').value;
+
+            if(!nama || !jual) return alert("Nama & Harga Jual wajib diisi!");
+
+            db.push({ id: Date.now(), nama, kode, beli: parseInt(beli) || 0, jual: parseInt(jual), stok: 0, kategori: kat });
+            save();
+            document.getElementById('f-nama').value = ''; document.getElementById('f-kode').value = '';
+            document.getElementById('f-harga-beli').value = ''; document.getElementById('f-harga-jual').value = '';
+            curCat = kat; 
+            alert("Produk berhasil disimpan!");
+            navKe('list');
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = cats.map(c => `<div class="tab ${c === curCat ? 'active' : ''}" onclick="setCat('${c}')">${c}</div>`).join('');
+        }
+
+        function setCat(c) { curCat = c; renderTabs(); renderProduk(); }
+
+        function renderProduk() {
+            const container = document.getElementById('list-render');
+            const q = document.getElementById('q-search').value.toLowerCase();
+            const filtered = db.filter(i => i.kategori === curCat && (i.nama.toLowerCase().includes(q) || i.kode.toLowerCase().includes(q)));
+
+            if(filtered.length === 0) { container.innerHTML = `<p style="text-align:center; color:#94a3b8; margin-top:30px;">( Kosong )</p>`; return; }
+
+            container.innerHTML = filtered.map(item => `
+                <div class="product-item">
+                    <div class="product-info">
+                        <div class="name-price-row">
+                            <span class="product-name">${item.nama}</span>
+                            <span class="price-sell-red" onclick="bukaEditHarga(${item.id})">Rp ${item.jual.toLocaleString()}</span>
+                        </div>
+                        <div class="product-meta">Kode: ${item.kode} | <span class="price-buy-small">M: Rp ${item.beli.toLocaleString()}</span></div>
+                    </div>
+                    <div class="right-side">
+                        <div class="stock-control">
+                            <button class="btn-qty" onclick="adjustStok(${item.id}, -1)">-</button>
+                            <span class="stock-num">${item.stok}</span>
+                            <button class="btn-qty" onclick="adjustStok(${item.id}, 1)">+</button>
+                        </div>
+                        <button class="btn-delete" onclick="hapusProduk(${item.id})"><i class="fas fa-trash"></i> Hapus</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function adjustStok(id, val) {
+            const idx = db.findIndex(p => p.id === id);
+            db[idx].stok = Math.max(0, db[idx].stok + val);
+            save(); renderProduk();
+        }
+
+        function hapusProduk(id) {
+            if(confirm("Hapus produk ini?")) { db = db.filter(p => p.id !== id); save(); renderProduk(); }
+        }
+
+        function bukaEditHarga(id) {
+            editId = id;
+            const p = db.find(x => x.id === id);
+            document.getElementById('edit-title').innerText = p.nama;
+            document.getElementById('m-kode').value = p.kode;
+            document.getElementById('m-beli').value = p.beli;
+            document.getElementById('m-jual').value = p.jual;
+            document.getElementById('modal-edit').classList.add('show');
+        }
+
+        function updateHargaAction() {
+            const idx = db.findIndex(p => p.id === editId);
+            db[idx].kode = document.getElementById('m-kode').value;
+            db[idx].beli = parseInt(document.getElementById('m-beli').value) || 0;
+            db[idx].jual = parseInt(document.getElementById('m-jual').value) || 0;
+            save(); tutupModal(); renderProduk();
+        }
+
+        function save() { localStorage.setItem('stok_db_v5', JSON.stringify(db)); }
+        function tutupModal() { document.getElementById('modal-edit').classList.remove('show'); }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(db)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'backup_stok_' + new Date().toISOString().slice(0,10) + '.json';
+            a.click();
+        }
+
+        function importData(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    db = JSON.parse(e.target.result);
+                    save(); alert("Data berhasil dipulihkan!"); renderProduk();
+                } catch (err) { alert("Format file salah!"); }
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+    </script>
+</body>
+</html>
