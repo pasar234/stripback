@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stok Strip Pro v5.0</title>
+    <title>Stok Strip Pro v5.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #f1f5f9; height: 100vh; overflow: hidden; }
         
-        /* ZOOM LAYER - METODE VISIBILITY (ANTI-BUG ANDROID 15) */
+        /* FULL SCREEN ZOOM & SWIPE */
         #zoom-layer { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #000; z-index: 999999; 
@@ -19,18 +19,34 @@
         }
         #zoom-layer.active { visibility: visible; opacity: 1; }
 
-        .zoom-header { height: 70px; display: flex; justify-content: flex-end; align-items: center; padding: 0 25px; }
-        .zoom-close { color: #ff0000; font-size: 50px; font-weight: bold; text-shadow: 0 0 10px #fff; }
+        .zoom-header { 
+            position: absolute; top: 0; width: 100%; height: 80px; 
+            display: flex; justify-content: flex-end; align-items: center; 
+            padding: 0 20px; z-index: 1000001; pointer-events: none;
+        }
+        .zoom-close { 
+            color: white; font-size: 20px; font-weight: bold; 
+            background: rgba(255,0,0,0.8); padding: 10px 20px; 
+            border-radius: 30px; pointer-events: auto; cursor: pointer;
+        }
         
         .swipe-wrapper { 
             flex: 1; display: flex; overflow-x: auto; 
-            scroll-snap-type: x mandatory; border: 2px solid red; /* Border deteksi bug */
+            scroll-snap-type: x mandatory;
         }
         .swipe-slide { 
             min-width: 100vw; height: 100%; scroll-snap-align: start;
-            display: flex; align-items: center; justify-content: center;
+            /* Trik agar gambar memenuhi layar tapi tidak terpotong */
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain; 
         }
-        .swipe-slide img { max-width: 95%; max-height: 80vh; object-fit: contain; border: 3px solid white; }
+
+        .swipe-info {
+            position: absolute; bottom: 20px; width: 100%;
+            text-align: center; color: white; font-size: 14px;
+            background: rgba(0,0,0,0.5); padding: 10px 0;
+        }
 
         /* UI Konten */
         .header { background: #1e293b; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -62,14 +78,14 @@
 
 <div id="zoom-layer">
     <div class="zoom-header">
-        <div class="zoom-close" onclick="closeZoom()">TUTUP [X]</div>
+        <div class="zoom-close" onclick="closeZoom()">TUTUP X</div>
     </div>
     <div class="swipe-wrapper" id="swipe-wrapper"></div>
-    <div style="color:white; text-align:center; padding:10px; background:red;">← GESER FOTO DI SINI →</div>
+    <div class="swipe-info" id="swipe-hint">← Geser untuk foto lain →</div>
 </div>
 
 <div class="header">
-    <div style="font-weight: bold;">STOK STRIP v5.0</div>
+    <div style="font-weight: bold;">STOK STRIP v5.1</div>
     <button onclick="toggleMenu()" style="background:none; border:none; color:white; font-size:24px;">⋮</button>
 </div>
 
@@ -139,10 +155,10 @@
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const scale = 600 / Math.max(img.width, img.height);
+                    const scale = 1000 / Math.max(img.width, img.height);
                     canvas.width = img.width * scale; canvas.height = img.height * scale;
                     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    imgs['p'+slot] = canvas.toDataURL('image/jpeg', 0.7);
+                    imgs['p'+slot] = canvas.toDataURL('image/jpeg', 0.8);
                     document.getElementById('p'+slot).src = imgs['p'+slot];
                     document.getElementById('p'+slot).classList.add('show');
                 };
@@ -160,33 +176,21 @@
         persist(); batal(); nav('list');
     }
 
-    function edit(id) {
-        const r = db.exec("SELECT * FROM produk WHERE id=?", [id])[0].values[0];
-        document.getElementById('f-id').value = r[0];
-        document.getElementById('f-nama').value = r[1];
-        document.getElementById('f-kat').value = r[2];
-        imgs.p1 = r[3] || ''; imgs.p2 = r[4] || '';
-        document.getElementById('p1').src = imgs.p1; document.getElementById('p1').classList.toggle('show', !!imgs.p1);
-        document.getElementById('p2').src = imgs.p2; document.getElementById('p2').classList.toggle('show', !!imgs.p2);
-        document.getElementById('form-title').innerText = "Edit Produk";
-        nav('add');
-    }
-
-    /* EMERGENCY ZOOM FIX */
     function openZoom(i1, i2) {
         const wrapper = document.getElementById('swipe-wrapper');
-        let html = `<div class="swipe-slide"><img src="${i1}"></div>`;
+        let html = `<div class="swipe-slide" style="background-image:url(${i1})"></div>`;
         if(i2 && i2 !== 'null' && i2 !== '') {
-            html += `<div class="swipe-slide"><img src="${i2}"></div>`;
+            html += `<div class="swipe-slide" style="background-image:url(${i2})"></div>`;
+            document.getElementById('swipe-hint').style.display = 'block';
+        } else {
+            document.getElementById('swipe-hint').style.display = 'none';
         }
         wrapper.innerHTML = html;
         document.getElementById('zoom-layer').classList.add('active');
         wrapper.scrollLeft = 0;
     }
 
-    function closeZoom() { 
-        document.getElementById('zoom-layer').classList.remove('active'); 
-    }
+    function closeZoom() { document.getElementById('zoom-layer').classList.remove('active'); }
 
     function render() {
         const q = document.getElementById('q').value;
@@ -202,14 +206,11 @@
                         <div style="font-weight:bold; font-size:14px">${r[1]}</div>
                         <div style="color:#2563eb; font-weight:bold; margin:5px 0">Stok: ${r[5]}</div>
                         <div>
-                            <button style="padding:5px 15px" onclick="event.stopPropagation(); adj(${r[0]},1)">+</button>
-                            <button style="padding:5px 15px" onclick="event.stopPropagation(); adj(${r[0]},-1)">-</button>
+                            <button style="padding:10px 20px" onclick="event.stopPropagation(); adj(${r[0]},1)">+</button>
+                            <button style="padding:10px 20px" onclick="event.stopPropagation(); adj(${r[0]},-1)">-</button>
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:5px">
-                        <button onclick="edit(${r[0]})" style="background:orange; color:white; border:none; padding:8px; border-radius:5px; font-size:11px; font-weight:bold">EDIT</button>
-                        <button onclick="hapus(${r[0]})" style="color:red; background:none; border:none; font-size:11px">Hapus</button>
-                    </div>
+                    <button onclick="edit(${r[0]})" style="background:orange; color:white; border:none; padding:10px; border-radius:5px; font-weight:bold">EDIT</button>
                 </div>`;
             });
         }
@@ -227,6 +228,18 @@
                 `<div style="flex:1; text-align:center; padding:15px; font-size:12px; font-weight:bold; border-bottom:3px solid ${c===curCat?'#2563eb':'#eee'}; color:${c===curCat?'#2563eb':'#666'}" onclick="curCat='${c}';nav('list')">${c}</div>`).join('');
             render();
         }
+    }
+
+    function edit(id) {
+        const r = db.exec("SELECT * FROM produk WHERE id=?", [id])[0].values[0];
+        document.getElementById('f-id').value = r[0];
+        document.getElementById('f-nama').value = r[1];
+        document.getElementById('f-kat').value = r[2];
+        imgs.p1 = r[3] || ''; imgs.p2 = r[4] || '';
+        document.getElementById('p1').src = imgs.p1; document.getElementById('p1').classList.toggle('show', !!imgs.p1);
+        document.getElementById('p2').src = imgs.p2; document.getElementById('p2').classList.toggle('show', !!imgs.p2);
+        document.getElementById('form-title').innerText = "Edit Produk";
+        nav('add');
     }
 
     function batal() {
@@ -248,7 +261,6 @@
         reader.readAsArrayBuffer(e.target.files[0]);
     }
     function adj(id, v) { db.run("UPDATE produk SET stok=MAX(0, stok+?) WHERE id=?", [v, id]); persist(); render(); }
-    function hapus(id) { if(confirm("Hapus?")) { db.run("DELETE FROM produk WHERE id=?", [id]); persist(); render(); } }
     function fullReset() { if(confirm("Reset semua data?")) { localStorage.clear(); location.reload(); } }
 
     window.onload = init;
